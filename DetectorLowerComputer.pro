@@ -46,9 +46,6 @@ SOURCES += \
     datawave.cpp \
     statusanalysis.cpp \
     systemoption.cpp \
-    tcpserver.cpp \
-    keyboard.cpp \
-    lineedit.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -57,6 +54,3 @@ HEADERS += \
     datawave.h \
     statusanalysis.h \
     systemoption.h \
-    tcpserver.h \
-    keyboard.h \
-    lineedit.h

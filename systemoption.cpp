@@ -17,14 +17,12 @@ SystemOption::SystemOption(QWidget *parent) :
     ipLabel(new QLabel(this)),
     portLabel(new QLabel(this)),
     getIp(new QLineEdit(this)),
-    getPort(new LineEdit(this)),
+    getPort(new QLineEdit(this)),
     listen(new QPushButton(this)),
     linkStatusLabel(new QLabel(this)),
     linkStatus(new QComboBox(this)),
     serverStatusLabel(new QLabel(this)),
     serverStatus(new QLabel(this)),
-    keyboard(new Keyboard(this)),
-    server(new TcpServer(this)),
     systemOptionLayout(new QGridLayout(this))
 {
     setWindowTitle("System Option");
@@ -41,10 +39,6 @@ SystemOption::SystemOption(QWidget *parent) :
     portLabel->setText("Port");
     getIp->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     getIp->setFocusPolicy(Qt::NoFocus);
-    QObject::connect(server, &TcpServer::newSocketConnected, this, &SystemOption::comboBoxAddItem);
-    QObject::connect(server, &TcpServer::newSocketConnected, [&](){serverStatus->setText("Connecting");});
-    QObject::connect(server, &TcpServer::socketDisconnected, this, &SystemOption::comboBoxDeleteItem);
-    QObject::connect(server, &TcpServer::socketDisconnected, [&](){serverStatus->setText("Listening Port" + QString::number(port));});
     getPort->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
     QIntValidator *getPortValidator = new QIntValidator(0, 65535, getPort);
     getPort->setValidator(getPortValidator);
@@ -53,7 +47,7 @@ SystemOption::SystemOption(QWidget *parent) :
     linkStatusLabel->setText("Link to");
     serverStatusLabel->setText("Sever Status");
     serverStatus->setText("Unconnected");
-    keyboard->hide();
+   
     systemOptionLayout->addWidget(comLabel, 0, 0, 1, 1, Qt::AlignVCenter);
     systemOptionLayout->addWidget(baudRateLabel, 0, 1, 1, 1, Qt::AlignVCenter);
     systemOptionLayout->addWidget(comComboBox, 1, 0, 1, 1, Qt::AlignVCenter);
@@ -63,7 +57,7 @@ SystemOption::SystemOption(QWidget *parent) :
     systemOptionLayout->addWidget(comStatus, 2, 1, 1, 2, Qt::AlignVCenter);
     systemOptionLayout->addWidget(ipLabel, 3, 0, 1, 1, Qt::AlignVCenter);
     systemOptionLayout->addWidget(portLabel, 3, 1, 1, 1, Qt::AlignVCenter);
-    systemOptionLayout->addWidget(keyboard, 0, 1, 4, 1);
+    
     systemOptionLayout->addWidget(getIp, 4, 0, 1, 1, Qt::AlignVCenter);
     systemOptionLayout->addWidget(getPort, 4, 1, 1, 1, Qt::AlignVCenter);
     systemOptionLayout->addWidget(listen, 4, 2, 1, 1, Qt::AlignVCenter);
@@ -83,9 +77,6 @@ SystemOption::SystemOption(QWidget *parent) :
     QObject::connect(linkStatus, static_cast<void(QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), [=](int a){qDebug() << a << "current";});
     //test code, it will be deleted in released version
     QObject::connect(linkStatus, static_cast<void(QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), [=](){emit currentsocketChanged(getCurrentSocketDescriptor());});
-    QObject::connect(getPort, &LineEdit::focusInSignal, [&](){keyboard->show(); baudRateLabel->hide(); baudRateComboBox->hide(); comStatus->hide(); portLabel->hide();});
-    QObject::connect(getPort, &LineEdit::focusOutSignal, [&](){keyboard->hide(); baudRateLabel->show(); baudRateComboBox->show(); comStatus->show(); portLabel->show();});
-    QObject::connect(listen, &QPushButton::clicked, [&](){keyboard->hide(); baudRateLabel->show(); baudRateComboBox->show(); comStatus->show(); portLabel->show();});
 }
 
 void SystemOption::newlisten()
@@ -94,10 +85,6 @@ void SystemOption::newlisten()
      * when the "Listen" button is clicked, the slots is called;
      * close the current listen, and get the TextEdit(getPort) Int : port, listen the port;
     */
-    if(server->isListening())
-        server->close();
-    port = getPort->text().toInt();
-    server->listen(QHostAddress::Any, static_cast<quint16>(port));
     serverStatus->setText("Listening Port" + QString::number(port));
 }
 
@@ -113,7 +100,6 @@ void SystemOption::comboBoxAddItem(int socketDescriptor)
     */
     QVariant itemData = socketDescriptor;
     linkStatus->addItem(QString::number(socketDescriptor), itemData);
-    ipLabel->setText(QString::number(server->getClientNum()));
 }
 
 void SystemOption::comboBoxDeleteItem(int socketDescritor)
@@ -123,7 +109,6 @@ void SystemOption::comboBoxDeleteItem(int socketDescritor)
     */
     int index = linkStatus->findText(QString::number(socketDescritor));
     linkStatus->removeItem(index);
-    ipLabel->setText(QString::number(server->getClientNum()));
 }
 
 int SystemOption::getCurrentSocketDescriptor() const
@@ -132,13 +117,6 @@ int SystemOption::getCurrentSocketDescriptor() const
      * combox get index of current socket
     */
     qDebug() << "this is get current socket calling";
-    if(server->linkList.size() >= 1)
-        return linkStatus->currentText().toInt();
-    else
-        return -1;
+    return 0;
 }
 
-TcpServer* SystemOption::getServer()
-{
-    return server;
-}

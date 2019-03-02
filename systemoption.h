@@ -6,7 +6,6 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
-#include "tcpserver.h"
 #include <QGridLayout>
 #include <QTcpSocket>
 #include "lineedit.h"
@@ -18,7 +17,6 @@ class SystemOption : public QWidget
 public:
     SystemOption(QWidget *parent = nullptr);
     int getCurrentSocketDescriptor() const;
-    TcpServer* getServer();
     ~SystemOption();
 private:
     QLabel *comLabel;
@@ -31,14 +29,12 @@ private:
     QLabel *ipLabel;
     QLabel *portLabel;
     QLineEdit *getIp;
-    LineEdit *getPort;
+    QLineEdit *getPort;
     QPushButton *listen;
     QLabel *linkStatusLabel;
     QComboBox *linkStatus;
     QLabel *serverStatusLabel;
     QLabel *serverStatus;
-    Keyboard *keyboard;
-    TcpServer *server;
     QGridLayout *systemOptionLayout;
     int port;
 signals:
